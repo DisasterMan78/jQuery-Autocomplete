@@ -67,6 +67,8 @@
                 deferRequestBy: 0,
                 params: {},
                 formatResult: Autocomplete.formatResult,
+                dataLabel: 'data',
+                valueLabel: 'value',
                 delimiter: null,
                 zIndex: 9999,
                 type: 'GET',
@@ -125,10 +127,10 @@
 
     $.Autocomplete = Autocomplete;
 
-    Autocomplete.formatResult = function (suggestion, currentValue) {
+    Autocomplete.formatResult = function (suggestion, currentValue, options) {
         var pattern = '(' + utils.escapeRegExChars(currentValue) + ')';
 
-        return suggestion.value.replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>');
+        return suggestion[options.valueLabel].replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>');
     };
 
     Autocomplete.prototype = {
@@ -478,7 +480,7 @@
                 queryLowerCase = query.toLowerCase();
 
             $.each(that.suggestions, function (i, suggestion) {
-                if (suggestion.value.toLowerCase() === queryLowerCase) {
+                if (suggestion[that.options.valueLabel].toLowerCase() === queryLowerCase) {
                     index = i;
                     return false;
                 }
@@ -614,11 +616,11 @@
 
         suggest: function () {
             if (this.suggestions.length === 0) {
-				if (this.options.showNoSuggestionNotice) {
-					this.noSuggestions();
-				} else {
-					this.hide();
-				}
+                if (this.options.showNoSuggestionNotice) {
+                    this.noSuggestions();
+                } else {
+                    this.hide();
+                }
                 return;
             }
 
@@ -661,10 +663,10 @@
                     html += formatGroup(suggestion, value, i);
                 }
 
-                html += '<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + '</div>';
+                html += '<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value, that.options) + '</div>';
             });
 
-            this.adjustContainerWidth();      
+            this.adjustContainerWidth();
 
             noSuggestionsContainer.detach();
             container.html(html);
@@ -732,7 +734,7 @@
             }
 
             $.each(that.suggestions, function (i, suggestion) {
-                var foundMatch = suggestion.value.toLowerCase().indexOf(value) === 0;
+                var foundMatch = suggestion[that.options.valueLabel].toLowerCase().indexOf(value) === 0;
                 if (foundMatch) {
                     bestMatch = suggestion;
                 }
@@ -780,6 +782,10 @@
             var that = this,
                 options = that.options;
 
+            if(typeof result.suggestions == 'undefined')
+            {
+                result.suggestions = result;
+            }
             result.suggestions = that.verifySuggestionsFormat(result.suggestions);
 
             // Cache results if cache is not disabled:
